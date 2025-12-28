@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .test-btn {
+    @apply px-4 py-2 bg-blue-500 text-white rounded;
+  }
+}
+
 /* Your custom styles here */
 body {
   font-family: sans-serif;
