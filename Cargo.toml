@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["app", "frontend", "server"]
+members = ["app", "entity", "frontend", "server"]
 
 # need to be applied only to wasm build
 [profile.release]
@@ -26,6 +26,8 @@ tokio = { version = "1.45.0", features = ["full"] }
 tower = { version = "0.5.2", features = ["full"] }
 tower-http = { version = "0.6.4", features = ["full"] }
 wasm-bindgen = "0.2.106"
+sea-orm = { version = "2.0.0-rc", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros", "with-uuid", "with-chrono", "schema-sync", "entity-registry" ] }
+dotenvy = "0.15"
 
 # See https://github.com/leptos-rs/cargo-leptos for documentation of all the parameters.
 

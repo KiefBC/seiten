@@ -7,10 +7,13 @@ edition = "2021"
 
 [dependencies]
 app = { path = "../app", default-features = false, features = ["ssr"] }
+entity = { path = "../entity" }
 leptos = { workspace = true, features = [ "ssr" ]}
 leptos_axum.workspace = true
 
 axum.workspace = true
+dotenvy.workspace = true
+sea-orm.workspace = true
 simple_logger.workspace = true
 tokio.workspace = true
 tower.workspace = true
