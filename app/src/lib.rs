@@ -8,7 +8,7 @@ use leptos_router::{
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
-        <html lang="en">
+        <html lang="en" data-theme="mytheme">
             <head>
                 <meta charset="utf-8"/>
                 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -32,7 +32,7 @@ pub fn App() -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/seiten.css"/>
 
         // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="Seiten - Anime Canon Manager"/>
 
         // content for this welcome page
         <Router>
@@ -48,17 +48,125 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    // Creates a reactive value to update the button
+    let input_value = RwSignal::new(String::new());
     let count = RwSignal::new(0);
-    let on_click = move |_| *count.write() += 1;
+
+    let on_scrape = move |_| {
+        leptos::logging::log!("Scrape clicked with value: {}", input_value.get());
+    };
+
+    let on_sync = move |_| {
+        leptos::logging::log!("Sync clicked");
+    };
+
+    let on_count_click = move |_| *count.write() += 1;
 
     view! {
-        <h1 class="text-4xl font-bold text-blue-600 mb-4">"Welcome to Leptos!"</h1>
-        <button
-            on:click=on_click
-            class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
-        >
-            "Click Me: " {count}
-        </button>
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="w-full max-w-2xl space-y-4">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h1 class="card-title text-5xl font-bold justify-center mb-8">"(正典) Seiten"</h1>
+
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text">"Anime Series URL"</span>
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="https://www.animefillerlist.com/shows/one-piece"
+                                class="input input-bordered input-primary w-full"
+                                on:input=move |ev| {
+                                    input_value.set(event_target_value(&ev));
+                                }
+                                prop:value=move || input_value.get()
+                            />
+                        </div>
+
+                        <div class="card-actions justify-end mt-6 gap-3">
+                            <button class="btn btn-primary" on:click=on_scrape>
+                                "Scrape"
+                            </button>
+                            <button class="btn btn-accent" on:click=on_sync>
+                                "Sync"
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title text-sm opacity-70">"Output"</h2>
+
+                        <div role="tablist" class="tabs tabs-bordered">
+                            <input type="radio" name="output_tabs" role="tab" class="tab" aria-label="JSON" checked=true/>
+                            <div role="tabpanel" class="tab-content p-4 overflow-hidden">
+                                <pre class="bg-base-200 p-4 rounded-lg overflow-x-auto text-sm">
+{r#"{
+  "series": {
+    "title": "One Piece",
+    "slug": "one-piece",
+    "episodes": [
+      {
+        "number": 1,
+        "type": "Canon",
+        "title": "I'm Luffy! The Man Who's Gonna Be King of the Pirates!"
+      },
+      {
+        "number": 2,
+        "type": "Canon",
+        "title": "Enter the Great Swordsman!"
+      },
+      {
+        "number": 131,
+        "type": "Filler",
+        "title": "The First Patient! The Untold Story of the Rumble Ball!"
+      }
+    ]
+  }
+}"#}
+                                </pre>
+                            </div>
+
+                            <input type="radio" name="output_tabs" role="tab" class="tab" aria-label="RON"/>
+                            <div role="tabpanel" class="tab-content p-4 overflow-hidden">
+                                <pre class="bg-base-200 p-4 rounded-lg overflow-x-auto text-sm">
+{r#"Series(
+  title: "One Piece",
+  slug: "one-piece",
+  episodes: [
+    Episode(
+      number: 1,
+      episode_type: Canon,
+      title: Some("I'm Luffy! The Man Who's Gonna Be King of the Pirates!"),
+    ),
+    Episode(
+      number: 2,
+      episode_type: Canon,
+      title: Some("Enter the Great Swordsman!"),
+    ),
+    Episode(
+      number: 131,
+      episode_type: Filler,
+      title: Some("The First Patient! The Untold Story of the Rumble Ball!"),
+    ),
+  ],
+)"#}
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-base-200 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title text-sm opacity-70">"Hydration Test"</h2>
+                        <button class="btn btn-secondary" on:click=on_count_click>
+                            "Click Me: " {count}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 }
