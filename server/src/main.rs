@@ -3,9 +3,39 @@ use leptos::prelude::*;
 use leptos_axum::{generate_route_list, LeptosRoutes};
 use app::*;
 use leptos::logging::log;
+use sea_orm::Database;
+use entity::prelude::*;
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().ok();
+
+    let db_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set");
+    log!("Connecting to database: {}", db_url);
+    let db = &Database::connect(&db_url)
+        .await
+        .expect("Failed to connect to database");
+    log!("Database connected successfully");
+
+    log!("Starting schema sync...");
+    // db.get_schema_builder()
+    //     .register(User)
+    //     .register(Series)
+    //     .register(Episode)
+    //     .apply(db)
+    //     .await
+    //     .expect("Failed to apply schema");
+
+    db.get_schema_registry("entity::*").sync(db)
+        .await
+        .expect("Failed to sync schema");
+    log!("Schema sync completed");
+
+    // You can now use your entities like this:
+    // use entity::prelude::*;
+    // use sea_orm::EntityTrait;
+    // let users = User::find().all(&db).await.unwrap();
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
