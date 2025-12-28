@@ -3,8 +3,10 @@ use leptos::prelude::*;
 use leptos_axum::{generate_route_list, LeptosRoutes};
 use app::*;
 use leptos::logging::log;
-use sea_orm::Database;
+use sea_orm::{Database, EntityTrait, Set, ActiveModelTrait};
+use sea_orm::entity::prelude::Uuid;
 use entity::prelude::*;
+use entity::{series, episode};
 
 #[tokio::main]
 async fn main() {
@@ -32,10 +34,42 @@ async fn main() {
         .expect("Failed to sync schema");
     log!("Schema sync completed");
 
-    // You can now use your entities like this:
-    // use entity::prelude::*;
-    // use sea_orm::EntityTrait;
-    // let users = User::find().all(&db).await.unwrap();
+    log!("Creating dummy data...");
+
+    let series_id = Uuid::new_v4();
+    let one_piece = series::ActiveModel {
+        id: Set(series_id),
+        slug: Set("one-piece".to_string()),
+        title: Set("One Piece".to_string()),
+        last_fetched: Set(None),
+        ..Default::default()
+    };
+
+    if Series::find_by_id(series_id).one(db).await.unwrap().is_none() {
+        one_piece.insert(db).await.unwrap();
+        log!("Created series: One Piece");
+
+        let episodes_data = [
+            ("Romance Dawn", 1, episode::EpisodeType::Canon),
+            ("Enter the Great Swordsman", 2, episode::EpisodeType::Canon),
+            ("Morgan vs. Luffy", 3, episode::EpisodeType::MixedCanon),
+        ];
+
+        for (title, num, ep_type) in episodes_data {
+            let ep = episode::ActiveModel {
+                id: Set(Uuid::new_v4()),
+                show_id: Set(series_id),
+                episode_num: Set(num),
+                episode_type: Set(ep_type),
+                title: Set(Some(title.to_string())),
+                ..Default::default()
+            };
+            ep.insert(db).await.unwrap();
+            log!("Created episode {}: {}", num, title);
+        }
+    } else {
+        log!("Dummy data already exists, skipping...");
+    }
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;

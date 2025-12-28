@@ -18,7 +18,9 @@ pub enum EpisodeType {
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    pub show_id: i32,
+    pub show_id: Uuid,
+    #[sea_orm(belongs_to, from = "show_id", to = "id")]
+    pub series: HasOne<super::series::Entity>,
     pub episode_num: i32,
     pub episode_type: EpisodeType,
     pub title: Option<String>,

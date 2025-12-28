@@ -9,6 +9,8 @@ pub struct Model {
     pub slug: String,
     pub title: String,
     pub last_fetched: Option<DateTimeLocal>,
+    #[sea_orm(has_many)]
+    pub episodes: HasMany<super::episode::Entity>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
