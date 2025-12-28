@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use leptos_axum::{generate_route_list, LeptosRoutes};
 use app::*;
 use leptos::logging::log;
-use sea_orm::{Database, EntityTrait, Set, ActiveModelTrait};
+use sea_orm::{Database, EntityTrait, Set, ActiveModelTrait, ColumnTrait, QueryFilter};
 use sea_orm::entity::prelude::Uuid;
 use entity::prelude::*;
 use entity::{series, episode};
@@ -36,19 +36,30 @@ async fn main() {
 
     log!("Creating dummy data...");
 
-    let series_id = Uuid::new_v4();
-    let one_piece = series::ActiveModel {
-        id: Set(series_id),
-        slug: Set("one-piece".to_string()),
-        title: Set("One Piece".to_string()),
-        last_fetched: Set(None),
-        ..Default::default()
-    };
+    // Check if One Piece already exists by slug
+    let existing_series = Series::find()
+        .filter(series::Column::Slug.eq("one-piece"))
+        .one(db)
+        .await
+        .unwrap();
 
-    if Series::find_by_id(series_id).one(db).await.unwrap().is_none() {
+    let series_id = if let Some(series) = existing_series {
+        log!("Series 'One Piece' already exists, skipping...");
+        series.id
+    } else {
+        // Create new series
+        let series_id = Uuid::new_v4();
+        let one_piece = series::ActiveModel {
+            id: Set(series_id),
+            slug: Set("one-piece".to_string()),
+            title: Set("One Piece".to_string()),
+            last_fetched: Set(None),
+            ..Default::default()
+        };
         one_piece.insert(db).await.unwrap();
         log!("Created series: One Piece");
 
+        // Create 3 episodes
         let episodes_data = [
             ("Romance Dawn", 1, episode::EpisodeType::Canon),
             ("Enter the Great Swordsman", 2, episode::EpisodeType::Canon),
@@ -67,9 +78,9 @@ async fn main() {
             ep.insert(db).await.unwrap();
             log!("Created episode {}: {}", num, title);
         }
-    } else {
-        log!("Dummy data already exists, skipping...");
-    }
+
+        series_id
+    };
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
