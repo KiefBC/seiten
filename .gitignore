@@ -12,6 +12,9 @@ test-results/
 end2end/playwright-report/
 playwright/.cache/
 
+# Generated Tailwind CSS
+style/output.css
+
 # the basics
 *.DS_Store
 *.db
