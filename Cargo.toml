@@ -14,7 +14,7 @@ leptos_meta = { version = "0.8.2" }
 leptos_router = { version = "0.8.2" }
 leptos_axum = { version = "0.8.2" }
 
-axum = "0.8.4"
+axum = { version = "0.8.4", features = ["macros"] }
 cfg-if = "1.0.0"
 console_error_panic_hook = "0.1.7"
 console_log = "1.0.0"
@@ -28,6 +28,7 @@ tower-http = { version = "0.6.4", features = ["full"] }
 wasm-bindgen = "0.2.106"
 sea-orm = { version = "2.0.0-rc", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros", "with-uuid", "with-chrono", "schema-sync", "entity-registry" ] }
 dotenvy = "0.15"
+reqwest = { version = "0.13.1", features = ["json"] }
 
 # See https://github.com/leptos-rs/cargo-leptos for documentation of all the parameters.
 

@@ -12,11 +12,11 @@ Seiten scrapes episode data from [AnimeFillerList](https://www.animefillerlist.c
 
 ### Phase 1 — Manual Management
 
-#### 1.1 Project Setup ✅
+#### 1.1 Project Setup
 - [x] Initialize Cargo workspace
 - [x] Create `core`, `migration`, and `app` crates
 - [x] Configure workspace dependencies
-- [ ] Set up Tailwind CSS
+- [x] Set up Tailwind CSS
 - [x] Verify Leptos dev server runs
 
 #### 1.2 Database Layer
@@ -120,41 +120,18 @@ Seiten scrapes episode data from [AnimeFillerList](https://www.animefillerlist.c
 - [ ] Multi-user support
 - [ ] Backup/restore configuration
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Language | Rust |
-| Frontend | Leptos (SSR with hydration) |
-| Backend | Leptos + Axum |
-| Database | SQLite via SeaORM |
-| HTTP Client | reqwest |
-| HTML Parsing | scraper |
-| Styling | Tailwind CSS |
-| UI Components | Thaw UI |
-| Utilities | Leptos-Use |
-| Deployment | Docker |
-
 ### Core Crate
 
 Handles all business logic independent of the UI:
 
-- **entities/** — SeaORM entities: `Series`, `Episode`, `EpisodeType` (Canon, MixedCanon, Filler, AnimeCanon)
+- **entities/** — SeaORM entities
 - **server/db.rs** — Database connection and query helpers
 - **server/scraper.rs** — Fetches and parses AnimeFillerList pages
-- **server/plex.rs** — Plex API client for libraries, shows, episodes, and collections
+- **server/plex/plex.rs** — Plex API client for libraries, shows, episodes, and collections
 
 ### Migration Crate
 
 SeaORM migrations for schema management. Run with `sea-orm-cli migrate`.
-
-### App Crate
-
-Leptos SSR application:
-
-- Server-rendered HTML with client-side hydration
-- Server functions for data operations (no separate REST API)
-- Type-safe across frontend and backend
 
 ## Data Model
 
@@ -167,12 +144,12 @@ sync_log (id, show_id, synced_at, episodes_synced)
 
 ### Episode Types
 
-| Type | Description |
-|------|-------------|
-| Canon | Manga canon — directly adapts source material |
-| MixedCanon | Partially canon with some filler content |
+| Type       | Description                                     |
+|------------|-------------------------------------------------|
+| Canon      | Manga canon — directly adapts source material   |
+| MixedCanon | Partially canon with some filler content        |
 | AnimeCanon | Original content considered canon by the studio |
-| Filler | Non-canon, skippable |
+| Filler     | Non-canon, skippable                            |
 
 ## Deployment
 
@@ -195,32 +172,10 @@ services:
 
 Single binary with embedded assets — no Node runtime required.
 
-## Dependencies
-
-### Core
-- `tokio` — async runtime
-- `reqwest` — HTTP client
-- `scraper` — HTML parsing
-- `sea-orm` — async ORM with SQLite backend
-- `sea-orm-migration` — database migrations
-- `serde` / `serde_json` — serialization
-- `chrono` — timestamps
-- `anyhow` / `thiserror` — error handling
-
-### App
-- `leptos` — reactive UI framework
-- `leptos_axum` — server integration
-- `leptos_router` — client-side routing
-- `thaw` — UI component library (buttons, forms, modals, tables)
-- `leptos-use` — reactive utilities (debounce, localStorage, click outside, etc.)
-- `tower-http` — middleware (CORS, etc.)
-
 ## Known Challenges
 
 1. **Show matching** — AnimeFillerList slugs don't always match Plex metadata. Will need fuzzy matching or manual mapping.
-
-2. **HTML scraping fragility** — No official API; dependent on AnimeFillerList's HTML structure. Cache aggressively to minimize requests.
-
+2. **HTML scraping fragility** — No official API; dependent on AnimeFillerList's HTML structure.
 3. **Multi-season handling** — Some shows split seasons differently between AnimeFillerList and Plex. May need episode offset configuration.
 
 ## References
