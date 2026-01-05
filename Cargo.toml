@@ -2,6 +2,12 @@
 resolver = "2"
 members = ["app", "entity", "frontend", "server"]
 
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["KiefBC <kiefx@pm.me>"]
+license = "MIT"
+
 # need to be applied only to wasm build
 [profile.release]
 codegen-units = 1
@@ -29,6 +35,8 @@ wasm-bindgen = "0.2.106"
 sea-orm = { version = "2.0.0-rc", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros", "with-uuid", "with-chrono", "schema-sync", "entity-registry" ] }
 dotenvy = "0.15"
 reqwest = { version = "0.13.1", features = ["json"] }
+scraper = "0.25.0"
+url = "2.5.7"
 
 # See https://github.com/leptos-rs/cargo-leptos for documentation of all the parameters.
 

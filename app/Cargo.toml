@@ -1,7 +1,9 @@
 [package]
 name = "app"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,13 +13,10 @@ leptos_meta.workspace = true
 leptos_router.workspace = true
 leptos_axum = { workspace = true, optional = true }
 reqwest.workspace = true
-
-http.workspace = true
-cfg-if.workspace = true
-thiserror.workspace = true
 chrono = { version = "0.4.42", features = ["serde"] }
 serde = "1.0.228"
-reactive_stores = "0.3.1"
+scraper.workspace = true
+url.workspace = true
 
 # SSR-only dependencies
 axum = { workspace = true, optional = true }

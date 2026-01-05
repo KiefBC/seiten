@@ -81,14 +81,37 @@ pub fn App() -> impl IntoView {
     }
 }
 
+/// Scrapes anime series data from the given URL.
+/// Specifically designed to work with animefillerlist.com series pages.
+/// Returns a SeriesData struct on success.
 #[server]
 pub async fn scrape_anime_series(url: String) -> Result<SeriesData, ServerFnError> {
     use chrono::NaiveDate;
+    use scraper::{Html, Selector};
+    use url::Url;
 
     let app_state = expect_context::<AppState>();
 
-    leptos::logging::log!("Fetching URL: {}", url);
+    let parsed_url = match Url::parse(&url) {
+        Ok(u) => u,
+        // TODO: I don't think this catch is necessary, Url::parse should return a proper error
+        Err(e) => {
+            return Err(ServerFnError::ServerError(format!(
+                "Invalid URL: {}",
+                e
+            )));
+        }
+    };
 
+    let slug = parsed_url
+        .path_segments()
+        .and_then(|segments| segments.last())// Get the last segment of the path e.g. "naruto-shippuden"
+        .unwrap_or("unknown-series")
+        .to_string();
+
+    let series_title = slug.replace("-", " ").to_uppercase();
+
+    leptos::logging::log!("Fetching URL: {}", url);
     let response = match app_state.http.get(&url).send().await {
         Ok(resp) => resp,
         Err(e) => {
@@ -109,31 +132,80 @@ pub async fn scrape_anime_series(url: String) -> Result<SeriesData, ServerFnErro
             return Err(ServerFnError::ServerError(e.to_string()));
         }
     };
-
     leptos::logging::log!("Response received, body length: {} bytes", body.len());
 
-    // For now, return a placeholder SeriesData with valid structure
-    // TODO: Parse the HTML body and extract episode data
-    Ok(SeriesData {
-        title: "Test Series".to_string(),
-        slug: "test-series".to_string(),
-        episodes: vec![EpisodeData {
-            ep_number: 1,
-            jap_release: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-            eng_release: NaiveDate::from_ymd_opt(2024, 1, 1).unwrap(),
-            episode_type: EpisodeType::Canon,
-            eng_title: "Fetched from URL".to_string(),
-            jap_title: None,
-            duration: Some(24),
-            manga_chapters: None,
-        }],
-    })
+
+    let dom = Html::parse_document(&body);
+
+    // Selector for the episode list table rows
+    let table_episode_list_selector = Selector::parse("table.EpisodeList tbody tr")
+        .expect("Valid CSS selector");
+
+    // These selectors are scoped to each episode row, notice that we are calling select on the row element later
+    let ep_num_selector = Selector::parse("td.Number")
+        .expect("Valid CSS selector");
+    let ep_title_selector = Selector::parse("td.Title")
+        .expect("Valid CSS selector");
+    let ep_type_selector = Selector::parse("td.Type")
+        .expect("Valid CSS selector");
+    let ep_date_selector = Selector::parse("td.Date")
+        .expect("Valid CSS selector");
+
+    let mut ep_series_data: Vec<EpisodeData> = Vec::new();
+
+    let mut absolute_count = 0;
+    for row in dom.select(&table_episode_list_selector) {
+        absolute_count += 1;
+
+        // These searches are scoped to 'row', not the entire document!
+        // This is assuming the date is always in YYYY-MM-DD format on AnimeFillerList
+        let num = row.select(&ep_num_selector).next()
+            .map(|element| element.text().collect::<String>().trim().to_string());
+        let title = row.select(&ep_title_selector).next()
+            .map(|element| element.text().collect::<String>().trim().to_string());
+        let ep_type = row.select(&ep_type_selector).next()
+            .map(|element| element.text().collect::<String>().trim().to_string());
+        let date = row.select(&ep_date_selector).next()
+            .map(|element| element.text().collect::<String>().trim().to_string());
+
+        let ep_data = EpisodeData::new(
+            num.as_ref().and_then(|s| s.parse::<i32>().ok()).unwrap_or(0),
+            absolute_count,
+            None, // No AniDB scrape yet
+            date.as_deref()
+                .and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+                .unwrap_or_else(|| NaiveDate::from_ymd_opt(1970, 1, 1).unwrap()),
+            match ep_type.as_deref() {
+                Some("Canon") => EpisodeType::Canon,
+                Some("Filler") => EpisodeType::Filler,
+                Some("Mixed") => EpisodeType::Mixed,
+                Some("Anime Canon") => EpisodeType::AnimeCanon,
+                _ => EpisodeType::Canon,
+            },
+            title.as_deref().unwrap_or("Untitled"),
+            None,
+            None,
+            None,
+        );
+
+        ep_series_data.push(ep_data);
+    }
+
+    leptos::logging::log!("Total episodes found: {}", ep_series_data.len());
+
+    let series_data = SeriesData::new(
+        &slug,
+        &series_title,
+        &ep_series_data,
+    );
+
+    Ok(series_data)
 }
 
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let input_value = RwSignal::new(String::new());
+    let input_value = RwSignal::new("https://www.animefillerlist.com/shows/naruto-shippuden".to_string());
     let scraped_data = RwSignal::new(Option::<SeriesData>::None);
 
     // only used for our hydration test
