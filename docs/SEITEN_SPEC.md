@@ -27,10 +27,10 @@ Seiten scrapes episode data from [AnimeFillerList](https://www.animefillerlist.c
 - [ ] Write basic queries: insert show, get show by slug, get episodes
 
 #### 1.3 AnimeFillerList Scraper
-- [ ] Set up reqwest client with user agent
-- [ ] Implement search endpoint parsing
-- [ ] Implement show page scraping (episode table)
-- [ ] Parse episode types from CSS classes
+- [x] Set up reqwest client with user agent
+- [x] Implement search endpoint parsing
+- [x] Implement show page scraping (episode table)
+- [x] Parse episode types from CSS classes
 - [ ] Handle edge cases (missing data, different page layouts)
 - [ ] Write scraped data to database
 
