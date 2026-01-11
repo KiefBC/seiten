@@ -17,7 +17,7 @@ pub struct EpisodeData {
 }
 
 impl EpisodeData {
-    pub fn new (
+    pub fn new(
         ep_number: i32,
         absolute_episode_number: i32,
         jap_release: Option<NaiveDate>,
@@ -26,7 +26,7 @@ impl EpisodeData {
         eng_title: &str,
         jap_title: Option<&str>,
         duration: Option<i32>,
-        manga_chapters: Option<&[i32]>
+        manga_chapters: Option<&[i32]>,
     ) -> Self {
         EpisodeData {
             ep_number,
@@ -51,11 +51,7 @@ pub struct SeriesData {
 }
 
 impl SeriesData {
-    pub fn new (
-        slug: &str,
-        title: &str,
-        episodes: &[EpisodeData],
-    ) -> Self {
+    pub fn new(slug: &str, title: &str, episodes: &[EpisodeData]) -> Self {
         SeriesData {
             slug: slug.to_string(),
             title: title.to_string(),
@@ -71,4 +67,16 @@ pub enum EpisodeType {
     Filler,
     Mixed,
     AnimeCanon,
+}
+
+#[cfg(feature = "ssr")]
+impl From<EpisodeType> for ::entity::episode::EpisodeType {
+    fn from(ep_type: EpisodeType) -> Self {
+        match ep_type {
+            EpisodeType::Canon => ::entity::episode::EpisodeType::Canon,
+            EpisodeType::Filler => ::entity::episode::EpisodeType::Filler,
+            EpisodeType::Mixed => ::entity::episode::EpisodeType::MixedCanon,
+            EpisodeType::AnimeCanon => ::entity::episode::EpisodeType::AnimeCanon,
+        }
+    }
 }

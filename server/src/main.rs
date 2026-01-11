@@ -98,9 +98,9 @@ async fn main() {
                 move || shell(app_state.leptos_options.clone())
             },
         )
-        .fallback(leptos_axum::file_and_error_handler::<AppState, _>(
-            |opts| shell(opts),
-        ))
+        .fallback(leptos_axum::file_and_error_handler::<AppState, _>(|opts| {
+            shell(opts)
+        }))
         .with_state(app_state);
 
     // run our app with hyper
