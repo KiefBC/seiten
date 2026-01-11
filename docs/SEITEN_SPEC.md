@@ -23,8 +23,8 @@ Seiten scrapes episode data from [AnimeFillerList](https://www.animefillerlist.c
 - [x] Install `sea-orm-cli`
 - [x] Write initial migration (shows, episodes, show_mappings, sync_log)
 - [x] Run migration, generate entities 
-- [ ] Create database connection helper
-- [ ] Write basic queries: insert show, get show by slug, get episodes
+- [x] Create database connection helper
+- [x] Write basic queries: insert show, get show by slug, get episodes
 
 #### 1.3 AnimeFillerList Scraper
 - [x] Set up reqwest client with user agent
@@ -32,7 +32,7 @@ Seiten scrapes episode data from [AnimeFillerList](https://www.animefillerlist.c
 - [x] Implement show page scraping (episode table)
 - [x] Parse episode types from CSS classes
 - [ ] Handle edge cases (missing data, different page layouts)
-- [ ] Write scraped data to database
+- [x] Write scraped data to database
 
 #### 1.4 Plex API Client
 - [ ] Implement authentication (token-based) - structure only
@@ -44,7 +44,7 @@ Seiten scrapes episode data from [AnimeFillerList](https://www.animefillerlist.c
 
 #### 1.5 UI — Shell (Basic Setup)
 - [x] Set up Leptos app with router
-- [ ] Configure Thaw UI theme
+- [ ] ~~Configure Thaw UI theme~~ -- *ThawUI does not yet support Leptos v0.8; use Tailwind directly for now*
 - [ ] Create layout component (nav, content area)
 - [ ] Add placeholder routes: Home, Search, Library, Settings
 
@@ -170,7 +170,7 @@ services:
       - PLEX_TOKEN=${PLEX_TOKEN}
 ```
 
-Single binary with embedded assets — no Node runtime required.
+Single binary with embedded assets, no Node runtime required.
 
 ## Known Challenges
 
@@ -184,5 +184,5 @@ Single binary with embedded assets — no Node runtime required.
 - [Plex API Documentation](https://plexapi.dev)
 - [Leptos Book](https://book.leptos.dev)
 - [SeaORM Documentation](https://www.sea-ql.org/SeaORM/docs/index)
-- [Thaw UI](https://thawui.vercel.app)
+- ~~[Thaw UI](https://thawui.vercel.app)~~
 - [Leptos-Use](https://leptos-use.rs)

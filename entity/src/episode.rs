@@ -1,6 +1,7 @@
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "Text")]
 pub enum EpisodeType {
     #[sea_orm(string_value = "canon")]
@@ -13,11 +14,12 @@ pub enum EpisodeType {
     AnimeCanon,
 }
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "episodes")]
 pub struct Model {
-    #[sea_orm(primary_key, auto_increment = false)]
+    #[sea_orm(primary_key, auto_increment = false, column_type = "Text")]
     pub id: Uuid,
+    #[sea_orm(column_type = "Text")]
     pub show_id: Uuid,
     #[sea_orm(belongs_to, from = "show_id", to = "id")]
     pub series: HasOne<super::series::Entity>,

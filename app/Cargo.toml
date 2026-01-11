@@ -17,10 +17,12 @@ chrono = { version = "0.4.42", features = ["serde"] }
 serde = "1.0.228"
 scraper.workspace = true
 url.workspace = true
+uuid = { version = "1.11.0", features = ["v4", "serde", "js"] }
 
 # SSR-only dependencies
 axum = { workspace = true, optional = true }
 sea-orm = { workspace = true, optional = true }
+entity = { path = "../entity", optional = true }
 
 [features]
 default = []
@@ -32,4 +34,5 @@ ssr = [
     "dep:leptos_axum",
     "dep:axum",
     "dep:sea-orm",
+    "dep:entity",
 ]
