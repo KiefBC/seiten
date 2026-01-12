@@ -26,7 +26,6 @@ pub async fn parse_response(url: &String) -> Result<String, ServerFnError> {
 
     let app_state = expect_context::<AppState>();
 
-    log!("Sending HTTP GET request to URL: {}", url);
     let response = match app_state.http.get(*&url).send().await {
         Ok(resp) => resp,
         Err(e) => {
@@ -150,8 +149,8 @@ pub async fn orchestrate_scrape(url: &str) -> Result<SeriesData, ServerFnError> 
             })
             .collect(),
     ).await {
-        Ok(_) => {
-            log!("Successfully created episodes for series '{}'", slug);
+        Ok((created, skipped)) => {
+            log!("Episode bulk creation complete for series '{}': {} created, {} skipped (duplicates)", slug, created, skipped);
         }
         Err(e) => {
             log!("Failed to create episodes: {:?}", e);

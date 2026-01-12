@@ -77,6 +77,7 @@ pub fn parse_episodes_from_html(body: &str) -> Vec<EpisodeData> {
 }
 
 /// Create a single episode for a series.
+/// Idempotent: returns existing episode ID if already exists.
 #[server(endpoint = "episodes/create", prefix = "/api/v1")]
 pub async fn create_episode(
     show_id: Uuid,
@@ -86,7 +87,7 @@ pub async fn create_episode(
 ) -> Result<Uuid, ServerFnError> {
     let state = expect_context::<AppState>();
 
-    log!("Creating episode {} for series {}", episode_num, show_id);
+    log!("Creating/retrieving episode {} for series {}", episode_num, show_id);
 
     let new_episode = episode::ActiveModel {
         id: Set(Uuid::new_v4()),
@@ -98,7 +99,7 @@ pub async fn create_episode(
 
     match state.episode_store.create(new_episode).await {
         Ok(model) => {
-            log!("Episode created: {}", model.id);
+            log!("Episode {} for series {} ready: {}", episode_num, show_id, model.id);
             Ok(model.id)
         }
         Err(e) => Err(ServerFnError::ServerError(format!(
