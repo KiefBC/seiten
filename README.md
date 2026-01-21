@@ -51,6 +51,8 @@ PLEX_TOKEN=your-plex-token
 - Helped integrate Tailwind CSS with Leptos.
 - Assisted in general Cargo.toml dependency management.
 - Playwright integration for end-to-end testing.
+- Brainstorming UI/UX ideas and layout suggestions.
+- XML parsing strategies for AniDB data.
 
 ## License
 
