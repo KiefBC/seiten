@@ -3,3 +3,8 @@
 pub use super::user::Entity as User;
 pub use super::series::Entity as Series;
 pub use super::episode::Entity as Episode;
+pub use super::anidb_series::Entity as AnidbSeries;
+pub use super::anidb_episode::Entity as AnidbEpisode;
+pub use super::anidb_title::Entity as AnidbTitle;
+pub use super::anidb_title::TitleType;
+pub use super::anidb_dump_meta::Entity as AnidbDumpMeta;

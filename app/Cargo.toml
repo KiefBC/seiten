@@ -13,16 +13,18 @@ leptos_meta.workspace = true
 leptos_router.workspace = true
 leptos_axum = { workspace = true, optional = true }
 reqwest.workspace = true
-chrono = { version = "0.4.42", features = ["serde"] }
-serde = "1.0.228"
+chrono.workspace = true
+serde.workspace = true
 scraper.workspace = true
 url.workspace = true
-uuid = { version = "1.11.0", features = ["v4", "serde", "js"] }
+uuid.workspace = true
+quick-xml.workspace = true
 
 # SSR-only dependencies
 axum = { workspace = true, optional = true }
 sea-orm = { workspace = true, optional = true }
 entity = { path = "../entity", optional = true }
+rust-fuzzy-search = { workspace = true, optional = true }
 
 [features]
 default = []
@@ -35,4 +37,5 @@ ssr = [
     "dep:axum",
     "dep:sea-orm",
     "dep:entity",
+    "dep:rust-fuzzy-search",
 ]

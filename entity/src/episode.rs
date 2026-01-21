@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -13,8 +14,9 @@ pub enum EpisodeType {
     #[sea_orm(string_value = "anime_canon")]
     AnimeCanon,
 }
+
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "episodes")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false, column_type = "Text")]
@@ -26,6 +28,13 @@ pub struct Model {
     pub episode_num: i32,
     pub episode_type: EpisodeType,
     pub title: Option<String>,
+    // AniDB fields
+    pub anidb_id: Option<i32>, // Episode ID from AniDB
+    pub title_ja: Option<String>,
+    pub airdate: Option<NaiveDate>,
+    pub length: Option<i32>, // Episode length in minutes
+    pub summary: Option<String>,
+    pub crunchyroll_id: Option<String>,
 }
 
 impl ActiveModelBehavior for ActiveModel {}
