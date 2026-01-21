@@ -10,8 +10,6 @@ A self-hosted tool for managing anime canon/filler collections in Plex. Seiten s
 
 </div>
 
-<div align="center">
-
 ## Running the Development Server
 
 ```bash
@@ -29,34 +27,31 @@ cargo leptos build --release
 ```
 
 This generates:
-
-```
-Server binary in `target/server/release`
-Site package in `target/site`
-```
+- Server binary in `target/server/release`
+- Site package in `target/site`
 
 ## Configuration
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root (see `.env.example`):
 
 ```env
 DATABASE_URL=sqlite://db.sqlite?mode=rwc
-# PLEX_URL=http://your-plex-server:32400
-# PLEX_TOKEN=your-plex-token
+
+# Get these credentials at: https://anidb.net/perl-bin/animedb.pl?show=client
+ANIDB_CLIENT_ID=seite
+ANIDB_CLIENT_VERSION=1
+
+PLEX_URL=ip:port
+PLEX_TOKEN=your-plex-token
 ```
 
-## Project Structure
+## Areas where AI helped
 
-```
-**app/** - Shared Leptos application code (UI components, routes)
-**frontend/** - WASM frontend entry point
-**server/** - Axum server with database logic
-**entity/** - SeaORM entity models (Series, Episode, User)
-**style/** - Tailwind CSS input/output files
-```
+- Generating a starting point for the README.md file.
+- Helped integrate Tailwind CSS with Leptos.
+- Assisted in general Cargo.toml dependency management.
+- Playwright integration for end-to-end testing.
 
-## Licensing
+## License
 
-Do Wat U Want.
-
-</div>
+MIT

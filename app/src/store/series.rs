@@ -2,6 +2,8 @@ use ::entity::{prelude::*, series};
 use sea_orm::*;
 use uuid::Uuid;
 
+use crate::AniDBSeriesData;
+
 /// Encapsulates all database queries and mutations for the Series table.
 #[derive(Debug, Clone)]
 pub struct SeriesStore {
@@ -15,8 +17,6 @@ impl SeriesStore {
     }
 
     /// Find a series by its slug.
-    /// Returns None if no series with the given slug exists.
-    /// Otherwise, returns the series model.
     pub async fn find_by_slug(&self, slug: &str) -> Result<Option<series::Model>, DbErr> {
         if slug.trim().is_empty() {
             return Err(DbErr::Custom("slug cannot be empty".to_string()));
@@ -29,8 +29,6 @@ impl SeriesStore {
     }
 
     /// Find a series by its UUID.
-    /// Returns None if no series with the given ID exists.
-    /// Otherwise, returns the series model.
     pub async fn find_by_id(&self, id: Uuid) -> Result<Option<series::Model>, DbErr> {
         if id.is_nil() {
             return Err(DbErr::Custom("id cannot be nil UUID".to_string()));
@@ -40,7 +38,6 @@ impl SeriesStore {
     }
 
     /// Check if a series with the given slug exists.
-    /// Returns true if it exists, false otherwise.
     pub async fn exists_by_slug(&self, slug: &str) -> Result<bool, DbErr> {
         if slug.trim().is_empty() {
             return Err(DbErr::Custom("slug cannot be empty".to_string()));
@@ -55,7 +52,6 @@ impl SeriesStore {
     }
 
     /// List all series, ordered by title.
-    /// Returns a vector of series models.
     pub async fn list_all(&self) -> Result<Vec<series::Model>, DbErr> {
         Series::find()
             .order_by_asc(series::Column::Title)
@@ -64,7 +60,6 @@ impl SeriesStore {
     }
 
     /// Insert a new series into the database.
-    /// Returns the created series model.
     pub async fn create(&self, model: series::ActiveModel) -> Result<series::Model, DbErr> {
         let slug = match &model.slug {
             Set(s) => {
@@ -97,7 +92,6 @@ impl SeriesStore {
     }
 
     /// Update an existing series in the database.
-    /// Returns the updated series model.
     pub async fn update(&self, model: series::ActiveModel) -> Result<series::Model, DbErr> {
         let id = match &model.id {
             Set(id) => *id,
@@ -124,7 +118,6 @@ impl SeriesStore {
     }
 
     /// Update the last_fetched timestamp for a series.
-    /// Returns the updated series model.
     pub async fn touch_last_fetched(&self, id: Uuid) -> Result<series::Model, DbErr> {
         if id.is_nil() {
             return Err(DbErr::Custom("id cannot be nil UUID".to_string()));
@@ -142,12 +135,78 @@ impl SeriesStore {
     }
 
     /// Delete a series by its UUID.
-    /// Returns the result of the delete operation.
     pub async fn delete(&self, id: Uuid) -> Result<DeleteResult, DbErr> {
         if id.is_nil() {
             return Err(DbErr::Custom("id cannot be nil UUID".to_string()));
         }
-        
+
         Series::delete_by_id(id).exec(&self.db).await
+    }
+
+    /// Find an existing series by slug, or create a new one if it doesn't exist.
+    pub async fn find_or_create(
+        &self,
+        slug: &str,
+        title: &str,
+        anidb_id: Option<i32>,
+    ) -> Result<series::Model, DbErr> {
+        if slug.trim().is_empty() {
+            return Err(DbErr::Custom("slug cannot be empty".to_string()));
+        }
+        if title.trim().is_empty() {
+            return Err(DbErr::Custom("title cannot be empty".to_string()));
+        }
+
+        if let Some(existing) = self.find_by_slug(slug).await? {
+            return Ok(existing);
+        }
+
+        let new_series = series::ActiveModel {
+            id: Set(Uuid::new_v4()),
+            title: Set(title.to_string()),
+            slug: Set(slug.to_string()),
+            last_fetched: Set(Some(chrono::Local::now())),
+            anidb_id: Set(anidb_id),
+            anime_type: Set(None),
+            episode_count: Set(None),
+            start_date: Set(None),
+            end_date: Set(None),
+            title_ja: Set(None),
+            description: Set(None),
+            official_url: Set(None),
+        };
+
+        self.create(new_series).await
+    }
+
+    /// Enrich a series with metadata from AniDB.
+    /// Updates anime_type, episode_count, dates, Japanese title, description, and URL.
+    pub async fn enrich_with_anidb(
+        &self,
+        id: Uuid,
+        data: &AniDBSeriesData,
+    ) -> Result<series::Model, DbErr> {
+        if id.is_nil() {
+            return Err(DbErr::Custom("id cannot be nil UUID".to_string()));
+        }
+
+        let existing = Series::find_by_id(id)
+            .one(&self.db)
+            .await?
+            .ok_or_else(|| DbErr::RecordNotFound(format!("Series not found: {}", id)))?;
+
+        let mut active_model: series::ActiveModel = existing.into();
+
+        active_model.anidb_id = Set(Some(data.id));
+        active_model.anime_type = Set(Some(data.anime_type.clone()));
+        active_model.episode_count = Set(data.episode_count);
+        active_model.start_date = Set(data.start_date);
+        active_model.end_date = Set(data.end_date);
+        active_model.title_ja = Set(data.title_ja.clone());
+        active_model.description = Set(data.description.clone());
+        active_model.official_url = Set(data.url.clone());
+        active_model.last_fetched = Set(Some(chrono::Local::now()));
+
+        active_model.update(&self.db).await
     }
 }

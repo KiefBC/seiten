@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use chrono::NaiveDate;
 use leptos::{prelude::*, logging::log};
 use scraper::{Html, Selector};
@@ -95,6 +96,12 @@ pub async fn create_episode(
         episode_num: Set(episode_num),
         episode_type: Set(episode_type.into()),
         title: Set(title),
+        anidb_id: Set(None),
+        title_ja: Set(None),
+        airdate: Set(None),
+        length: Set(None),
+        summary: Set(None),
+        crunchyroll_id: Set(None),
     };
 
     match state.episode_store.create(new_episode).await {

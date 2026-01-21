@@ -1,4 +1,5 @@
 use leptos::{prelude::*, reactive::spawn_local};
+use leptos::prelude::set_timeout;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
@@ -9,12 +10,11 @@ mod types;
 pub use types::*;
 
 pub mod api;
-use api::series::*;
 
 #[cfg(feature = "ssr")]
 pub mod store;
 #[cfg(feature = "ssr")]
-use store::{EpisodeStore, SeriesStore};
+use store::{AniDBStore, EpisodeStore, SeriesStore};
 
 #[cfg(feature = "ssr")]
 use axum::extract::FromRef;
@@ -30,10 +30,12 @@ use sea_orm::DatabaseConnection;
 #[derive(FromRef, Debug, Clone)]
 pub struct AppState {
     pub leptos_options: LeptosOptions,
+    /// This is a db pool conn not a single conn
     pub db: DatabaseConnection,
     pub http: Client,
     pub series_store: SeriesStore,
     pub episode_store: EpisodeStore,
+    pub anidb_store: AniDBStore,
 }
 
 #[cfg(feature = "ssr")]
@@ -46,6 +48,7 @@ impl AppState {
 
         let series_store = SeriesStore::new(db.clone());
         let episode_store = EpisodeStore::new(db.clone());
+        let anidb_store = AniDBStore::new(db.clone());
 
         Self {
             leptos_options,
@@ -53,6 +56,7 @@ impl AppState {
             http,
             series_store,
             episode_store,
+            anidb_store,
         }
     }
 }
@@ -99,11 +103,40 @@ pub fn App() -> impl IntoView {
 
 /// Scrapes anime series data from the given URL.
 /// Specifically designed to work with animefillerlist.com series pages.
-/// Returns a SeriesData struct on success.
 #[server]
 pub async fn scrape_anime_series(url: String) -> Result<SeriesData, ServerFnError> {
     use crate::api::scraping::orchestrate_scrape;
     orchestrate_scrape(&url).await
+}
+
+/// Scrapes AniDB series data given an AniDB anime ID.
+#[server]
+pub async fn scrape_anidb_series(anidb_id: String) -> Result<AniDBSeriesData, ServerFnError> {
+    use crate::api::scraping::orchestrate_anidb_scrape;
+    orchestrate_anidb_scrape(&anidb_id).await
+}
+
+/// Enriches a series and its episodes with metadata from AniDB.
+#[server]
+pub async fn enrich_with_anidb(series_id: String) -> Result<(u64, u64), ServerFnError> {
+    use crate::api::scraping::enrich_series_with_anidb;
+    use uuid::Uuid;
+
+    let uuid = match Uuid::parse_str(&series_id) {
+        Ok(u) => u,
+        Err(e) => {
+            return Err(ServerFnError::ServerError(format!("Invalid UUID: {}", e)));
+        }
+    };
+
+    enrich_series_with_anidb(uuid).await
+}
+
+/// Toast notification data
+#[derive(Clone)]
+struct Toast {
+    message: String,
+    is_error: bool,
 }
 
 /// Renders the home page of your application.
@@ -112,9 +145,19 @@ fn HomePage() -> impl IntoView {
     let input_value =
         RwSignal::new("https://www.animefillerlist.com/shows/naruto-shippuden".to_string());
     let scraped_data = RwSignal::new(Option::<SeriesData>::None);
+    let toast = RwSignal::new(Option::<Toast>::None);
 
-    // only used for our hydration test
+    // Only used for our hydration test
     let count = RwSignal::new(0);
+
+    let show_toast = move |message: String, is_error: bool| {
+        toast.set(Some(Toast { message, is_error }));
+
+        set_timeout(
+            move || toast.set(None),
+            std::time::Duration::from_secs(3),
+        );
+    };
 
     let on_scrape = move |_| {
         log!("Scrape clicked with value: {}", input_value.get());
@@ -130,6 +173,30 @@ fn HomePage() -> impl IntoView {
                         data.episodes.len()
                     );
                     scraped_data.set(Some(data));
+                    show_toast("Scrape successful!".to_string(), false);
+                }
+                Err(e) => {
+                    log!("Scrape failed: {:?}", e);
+                    show_toast(format!("Scrape failed: {:?}", e), true);
+                }
+            }
+        });
+    };
+
+    let on_anidb_scrape = move |_| {
+        log!("Scrape clicked with value: {}", input_value.get());
+
+        let aid = "239".to_string();
+        spawn_local(async move {
+            log!("Scraping: {}", aid);
+
+            match scrape_anidb_series(aid).await {
+                Ok(data) => {
+                    log!(
+                        "Scraped successfully: {} Episodes!",
+                        data.episodes.len()
+                    );
+                    // scraped_data.set(Some(data));
                 }
                 Err(e) => {
                     log!("Scrape failed: {:?}", e)
@@ -165,6 +232,9 @@ fn HomePage() -> impl IntoView {
                             <div class="card-actions justify-end mt-6 gap-3">
                                 <button class="btn btn-primary" on:click=on_scrape>
                                     "Scrape"
+                                </button>
+                            <button class="btn btn-info" on:click=on_anidb_scrape>
+                                    "AniDB Scrape"
                                 </button>
                             </div>
                         </div>
@@ -244,5 +314,13 @@ fn HomePage() -> impl IntoView {
                     </div>
                 </div>
             </div>
+
+            {move || toast.get().map(|t| view! {
+                <div class="toast toast-top toast-end">
+                    <div class={if t.is_error { "alert alert-error" } else { "alert alert-success" }}>
+                        <span>{t.message}</span>
+                    </div>
+                </div>
+            })}
         }
 }

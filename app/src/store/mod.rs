@@ -5,7 +5,13 @@ pub mod series;
 pub mod episode;
 
 #[cfg(feature = "ssr")]
+pub mod anidb;
+
+#[cfg(feature = "ssr")]
 pub use series::SeriesStore;
 
 #[cfg(feature = "ssr")]
 pub use episode::EpisodeStore;
+
+#[cfg(feature = "ssr")]
+pub use anidb::{AniDBStore, TitleEntry};

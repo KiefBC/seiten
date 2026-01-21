@@ -4,5 +4,9 @@ pub mod prelude;
 pub mod user;
 pub mod series;
 pub mod episode;
+pub mod anidb_series;
+pub mod anidb_episode;
+pub mod anidb_title;
+pub mod anidb_dump_meta;
 
 pub use sea_orm;

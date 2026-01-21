@@ -34,9 +34,16 @@ tower-http = { version = "0.6.4", features = ["full"] }
 wasm-bindgen = "0.2.106"
 sea-orm = { version = "2.0.0-rc", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros", "with-uuid", "with-chrono", "schema-sync", "entity-registry" ] }
 dotenvy = "0.15"
-reqwest = { version = "0.13.1", features = ["json"] }
+reqwest = { version = "0.13.1", features = ["json", "gzip"] }
 scraper = "0.25.0"
 url = "2.5.7"
+serde = { version = "1.0.228", features = ["derive"] }
+uuid = { version = "1.11.0", features = ["v4", "serde", "js"] }
+chrono = { version = "0.4.42", features = ["serde"] }
+reactive_stores = "0.3.1"
+quick-xml = {  version = "0.39.0", features = ["async-tokio", "serialize"] }
+flate2 = "1.1"
+rust-fuzzy-search = "0.1"
 
 # See https://github.com/leptos-rs/cargo-leptos for documentation of all the parameters.
 
@@ -60,7 +67,9 @@ site-root = "target/site"
 site-pkg-dir = "pkg"
 
 # [Optional] The source CSS file. If it ends with .sass or .scss then it will be compiled by dart-sass into CSS. The CSS is optimized by Lightning CSS before being written to <site-root>/<site-pkg>/app.css
-style-file = "./style/output.css"
+#style-file = "./style/output.css"
+tailwind-input-file = "./style/input.css"
+tailwind-config-file = "./tailwind.config.js"
 
 # Assets source dir. All files found here will be copied and synchronized to site-root.
 # The assets-dir cannot have a sub directory with the same name/path as site-pkg-dir.
