@@ -22,3 +22,7 @@ style/output.css
 .env
 .env.local
 .idea/
+
+# Example data files (kept locally, not in repo)
+docs/ANIDB_XML_EXAMPLE.xml
+docs/ANIDB_DUMP_EXAMPLE.dat
